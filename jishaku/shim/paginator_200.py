@@ -332,44 +332,6 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         self.update_view()
         await interaction.response.edit_message(**self.send_kwargs)
 
-    @ui.button(label="\N{BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR} \u200b 1", style=discord.ButtonStyle.secondary)
-    async def button_last(self, a: MaybeButton['PaginatorInterface'], b: MaybeButton['PaginatorInterface']):  # pylint: disable=unused-argument
-        """Button to send interface to last page"""
-
-        interaction, _ = button_either_arg(a, b)
-
-        self._display_page = self.page_count - 1
-        self.update_view()
-        await interaction.response.edit_message(**self.send_kwargs)
-
-    if typing.TYPE_CHECKING or hasattr(ui, 'TextInput'):
-        class PageChangeModal(ui.Modal, title="Go to page"):
-            """Modal that prompts users for the page number to change to"""
-
-            page_number: ui.TextInput[ui.Modal] = ui.TextInput(label="Page number", style=discord.TextInputStyle.short, custom_id="jishaku:pgno")
-
-            def __init__(self, interface: 'PaginatorInterface', *args: typing.Any, **kwargs: typing.Any):
-                super().__init__(*args, timeout=interface.timeout_length, **kwargs)
-                self.interface = interface
-                self.page_number.label = f"Page number (1-{interface.page_count})"
-                self.page_number.min_length = 1
-                self.page_number.max_length = len(str(interface.page_count))
-
-            async def on_submit(self, interaction: discord.Interaction):
-                try:
-                    if not self.page_number.value:
-                        raise ValueError("Page number not filled")
-
-                    self.interface.display_page = int(self.page_number.value) - 1
-                except ValueError:
-                    await interaction.response.send_message(
-                        content=f"``{self.page_number.value}`` could not be converted to a page number",
-                        ephemeral=True
-                    )
-                else:
-                    self.interface.update_view()
-                    await interaction.response.edit_message(**self.interface.send_kwargs)
-
         @ui.button(label="\N{RIGHTWARDS ARROW WITH HOOK} \u200b Go to page", style=discord.ButtonStyle.primary)
         async def button_goto(self, a: MaybeButton['PaginatorInterface'], b: MaybeButton['PaginatorInterface']):  # pylint: disable=unused-argument
             """Button to jump directly to a page"""
