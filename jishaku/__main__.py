@@ -125,11 +125,8 @@ def entrypoint(intents: typing.Iterable[str], token: str, log_file: typing.Optio
 
     bot = commands.Bot(prefix, intents=intents_class)
 
-    if discord.version_info >= (2, 0, 0):
-        asyncio.run(entry(bot, token))
-    else:
-        bot.load_extension('jishaku')  # type: ignore
-        bot.run(token)  # type: ignore
+    bot.load_extension('jishaku')  # type: ignore
+    bot.run(token)  # type: ignore
 
 
 if __name__ == '__main__':
