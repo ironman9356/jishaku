@@ -332,13 +332,6 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         self.update_view()
         await interaction.response.edit_message(**self.send_kwargs)
 
-        @ui.button(label="\N{RIGHTWARDS ARROW WITH HOOK} \u200b Go to page", style=discord.ButtonStyle.primary)
-        async def button_goto(self, a: MaybeButton['PaginatorInterface'], b: MaybeButton['PaginatorInterface']):  # pylint: disable=unused-argument
-            """Button to jump directly to a page"""
-
-            interaction, _ = button_either_arg(a, b)
-
-            await interaction.response.send_modal(self.PageChangeModal(self))
 
     @ui.button(label="\N{BLACK SQUARE FOR STOP} \u200b Close paginator", style=discord.ButtonStyle.danger)
     async def button_close(self, a: MaybeButton['PaginatorInterface'], b: MaybeButton['PaginatorInterface']):  # pylint: disable=unused-argument
