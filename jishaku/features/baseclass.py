@@ -18,8 +18,8 @@ import sys
 import typing
 from datetime import datetime, timezone
 
-import discord
-from discord.ext import commands
+import disnake
+from disnake.ext import commands
 
 from jishaku.types import BotT, ContextA
 
@@ -29,7 +29,7 @@ __all__ = (
 )
 
 
-if typing.TYPE_CHECKING or discord.version_info >= (2, 0, 0):
+if typing.TYPE_CHECKING or disnake.version_info >= (2, 0, 0):
     _ConvertedCommand = commands.Command['Feature', typing.Any, typing.Any]
     _ConvertedGroup = commands.Group['Feature', typing.Any, typing.Any]
 else:

@@ -19,10 +19,10 @@ jobs:
           - {version: '3.10'}
           # Disabled because yarl's build setup is insanely stupid (requires checked out cythonize)
           #- {version: '3.11.0-alpha - 3.11.0', experimental: true}
-        discord-py:
-          - {NAME: 'pypi', PIP_TARGET: 'discord.py[voice]'}
-          - {NAME: 'git', PIP_TARGET: 'discord.py[voice] @ git+https://github.com/Rapptz/discord.py@master'}
-    name: "${{ matrix.os }} CPython ${{ matrix.python.version }} with ${{ matrix.python-arch }} ${{ matrix.discord-py.NAME }} discord.py"
+        disnake:
+          - {NAME: 'pypi', PIP_TARGET: 'disnaje[voice]'}
+          - {NAME: 'git', PIP_TARGET: 'disnake[voice] @ git+https://github.com/DisnakeDev/disnake@master'}
+    name: "${{ matrix.os }} CPython ${{ matrix.python.version }} with ${{ matrix.python-arch }} ${{ matrix.disnake.NAME }} disnake"
     steps:
     - uses: actions/checkout@v2
       with:
@@ -37,7 +37,7 @@ jobs:
       shell: bash
       run: |
         python -m pip install --upgrade pip setuptools wheel
-        pip install -U "${{ matrix.discord-py.PIP_TARGET }}" --extra-index-url https://gorialis.github.io/pip/
+        pip install -U "${{ matrix.disn.PIP_TARGET }}" --extra-index-url https://gorialis.github.io/pip/
         pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
 
     - name: Test from local directory

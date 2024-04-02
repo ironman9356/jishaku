@@ -18,8 +18,8 @@ import traceback
 import typing
 from urllib.parse import urlencode
 
-import discord
-from discord.ext import commands
+import disnake
+from disnake.ext import commands
 
 from jishaku.features.baseclass import Feature
 from jishaku.flags import Flags
@@ -58,7 +58,7 @@ class ManagementFeature(Feature):
             )
 
             try:
-                await discord.utils.maybe_coroutine(method, extension)
+                await disnake.utils.maybe_coroutine(method, extension)
             except Exception as exc:  # pylint: disable=broad-except
                 traceback_data = ''.join(traceback.format_exception(type(exc), exc, exc.__traceback__, 1))
 
@@ -87,7 +87,7 @@ class ManagementFeature(Feature):
 
         for extension in itertools.chain(*extensions):
             try:
-                await discord.utils.maybe_coroutine(self.bot.unload_extension, extension)
+                await disnake.utils.maybe_coroutine(self.bot.unload_extension, extension)
             except Exception as exc:  # pylint: disable=broad-except
                 traceback_data = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__, 1))
 
@@ -121,7 +121,7 @@ class ManagementFeature(Feature):
         """
 
         scopes = ('bot', 'applications.commands')
-        permissions = discord.Permissions()
+        permissions = disnake.Permissions()
 
         for perm in perms:
             if perm not in dict(permissions):
@@ -233,7 +233,7 @@ class ManagementFeature(Feature):
 
         for guild in guilds:
             slash_commands = self.bot.tree._get_all_commands(  # type: ignore  # pylint: disable=protected-access
-                guild=discord.Object(guild) if guild else None
+                guild=disnake.Object(guild) if guild else None
             )
             payload = [command.to_dict() for command in slash_commands]
 
@@ -244,11 +244,11 @@ class ManagementFeature(Feature):
                     data = await self.bot.http.bulk_upsert_guild_commands(self.bot.application_id, guild, payload=payload)
 
                 synced = [
-                    discord.app_commands.AppCommand(data=d, state=ctx._state)  # type: ignore  # pylint: disable=protected-access,no-member
+                    disnake.app_commands.AppCommand(data=d, state=ctx._state)  # type: ignore  # pylint: disable=protected-access,no-member
                     for d in data
                 ]
 
-            except discord.HTTPException as error:
+            except disnake.HTTPException as error:
                 # It's diagnosis time
                 error_lines: typing.List[str] = []
                 for line in str(error).split("\n"):

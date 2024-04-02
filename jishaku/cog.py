@@ -14,7 +14,7 @@ The Jishaku debugging and diagnostics cog implementation.
 import inspect
 import typing
 
-from discord.ext import commands
+from disnake.ext import commands
 
 from jishaku.features.baseclass import Feature
 from jishaku.features.filesystem import FilesystemFeature

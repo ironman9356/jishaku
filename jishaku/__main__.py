@@ -23,8 +23,8 @@ import typing
 import uuid
 
 import click
-import discord
-from discord.ext import commands
+import disnake
+from disnake.ext import commands
 
 LOG_FORMAT: logging.Formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s')
 LOG_STREAM: logging.Handler = logging.StreamHandler(stream=sys.stdout)
@@ -36,7 +36,7 @@ async def entry(bot: commands.Bot, *args: typing.Any, **kwargs: typing.Any):
     Async entrypoint for 2.0a compatibility
     """
 
-    await discord.utils.maybe_coroutine(bot.load_extension, 'jishaku')  # type: ignore
+    await disnake.utils.maybe_coroutine(bot.load_extension, 'jishaku')  # type: ignore
 
     try:
         await bot.start(*args, **kwargs)
@@ -70,9 +70,9 @@ def entrypoint(intents: typing.Iterable[str], token: str, log_level: str, log_fi
         log_file_handler.setFormatter(LOG_FORMAT)
         logger.addHandler(log_file_handler)
 
-    intents_class = discord.Intents.default()
-    all_intents = [name for name, _ in discord.Intents.all()]
-    default_intents = [name for name, value in discord.Intents.default() if value]
+    intents_class = disnake.Intents.default()
+    all_intents = [name for name, _ in disnake.Intents.all()]
+    default_intents = [name for name, value in disnake.Intents.default() if value]
 
     for intent in intents:
         if not intent.startswith(('+', '-')):
@@ -86,7 +86,7 @@ def entrypoint(intents: typing.Iterable[str], token: str, log_level: str, log_fi
         if name in all_intents:
             setattr(intents_class, name, value)
         elif name == 'all':
-            intents_class = discord.Intents.all() if value else discord.Intents.none()
+            intents_class = disnake.Intents.all() if value else disnake.Intents.none()
         elif name == 'default':
             for default_intent in default_intents:
                 setattr(intents_class, default_intent, value)
@@ -119,7 +119,7 @@ def entrypoint(intents: typing.Iterable[str], token: str, log_level: str, log_fi
 
     time.sleep(10)
 
-    def prefix(bot: commands.Bot, _: discord.Message) -> typing.List[str]:
+    def prefix(bot: commands.Bot, _: disnake.Message) -> typing.List[str]:
         return [
             f'{unique_id}::',
             f'<@{bot.user.id}> {unique_id}::',  # type: ignore

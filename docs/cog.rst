@@ -35,7 +35,7 @@ Here is an example of a simple custom cog using this setup:
 
 .. code:: python3
 
-    from discord.ext import commands
+    from disnake.ext import commands
 
     from jishaku.features.python import PythonFeature
     from jishaku.features.root_command import RootCommand
@@ -55,7 +55,7 @@ Thus, you can make a cog without any optional features like so:
 
 .. code:: python3
 
-    from discord.ext import commands
+    from disnake.ext import commands
 
     from jishaku.cog import STANDARD_FEATURES
 
@@ -72,7 +72,7 @@ To use these features as well, simply add them to your cog:
 
 .. code:: python3
 
-    from discord.ext import commands
+    from disnake.ext import commands
 
     from jishaku.cog import STANDARD_FEATURES, OPTIONAL_FEATURES
 
@@ -136,7 +136,7 @@ To change who can use jishaku, you must change how the owner is determined in yo
 .. code:: python3
 
     class MyBot(commands.Bot):
-        async def is_owner(self, user: discord.User):
+        async def is_owner(self, user: disnake.User):
             if something:  # Implement your own conditions here
                 return True
 
@@ -200,12 +200,12 @@ Codeblocks passed support yielding. Yielding allows results to be received durin
 
 Yielded results are treated the same as if they were returned.
 
-When using the ``jsk py`` command, there are a set of contextual variables you can use to interact with Discord:
+When using the ``jsk py`` command, there are a set of contextual variables you can use to interact with disnake:
 
 +----------------+-----------------------------------------------------------+
-| ``_bot``       |  The :class:`discord.ext.commands.Bot` instance.          |
+| ``_bot``       |  The :class:`disnake.ext.commands.Bot` instance.          |
 +----------------+-----------------------------------------------------------+
-| ``_ctx``       |  The invoking :class:`discord.ext.commands.Context`.      |
+| ``_ctx``       |  The invoking :class:`disnake.ext.commands.Context`.      |
 +----------------+-----------------------------------------------------------+
 | ``_message``   |  An alias for ``_ctx.message``.                           |
 +----------------+                                                           |
@@ -217,9 +217,9 @@ When using the ``jsk py`` command, there are a set of contextual variables you c
 +----------------+-----------------------------------------------------------+
 | ``_guild``     |  An alias for ``_ctx.guild``.                             |
 +----------------+-----------------------------------------------------------+
-| ``_find``      |  A shorthand for :func:`discord.utils.find`.              |
+| ``_find``      |  A shorthand for :func:`disnake.utils.find`.              |
 +----------------+-----------------------------------------------------------+
-| ``_get``       |  A shorthand for :func:`discord.utils.get`.               |
+| ``_get``       |  A shorthand for :func:`disnake.utils.get`.               |
 +----------------+-----------------------------------------------------------+
 
 Example:
@@ -258,9 +258,9 @@ Commands
 
     Empty strings will be sent as a ZWSP (``\u200b``).
 
-    :class:`discord.File` instances will be uploaded.
+    :class:`disnake.File` instances will be uploaded.
 
-    :class:`discord.Embed` instances will be sent as embeds.
+    :class:`disnake.Embed` instances will be sent as embeds.
 
     Any other instance is ``repr``'d and sent using the same rules as a string.
 

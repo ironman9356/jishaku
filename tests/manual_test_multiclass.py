@@ -23,8 +23,8 @@ import sys
 import typing
 
 import click
-import discord
-from discord.ext import commands
+import disnake
+from disnake.ext import commands
 
 LOADABLES = (
     ('j!1 ', 'tests.subclassed_module_1'),
@@ -38,7 +38,7 @@ async def async_entrypoint(token):
 
     for prefix, extension in LOADABLES:
         bot = commands.Bot(prefix)
-        await discord.utils.maybe_coroutine(bot.load_extension, extension)
+        await disnake.utils.maybe_coroutine(bot.load_extension, extension)
 
         bots.append(bot)
 

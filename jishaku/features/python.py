@@ -18,7 +18,7 @@ import io
 import time
 import typing
 
-import discord
+import disnake
 
 from jishaku.codeblocks import Codeblock, codeblock_converter
 from jishaku.exception_handling import ReplResponseReactor
@@ -95,13 +95,13 @@ class PythonFeature(Feature):
         What you return is what gets stored in the temporary _ variable.
         """
 
-        if isinstance(result, discord.Message):
+        if isinstance(result, disnake.Message):
             return await ctx.send(f"<Message <{result.jump_url}>>")
 
-        if isinstance(result, discord.File):
+        if isinstance(result, disnake.File):
             return await ctx.send(file=result)
 
-        if isinstance(result, discord.Embed):
+        if isinstance(result, disnake.Embed):
             return await ctx.send(embed=result)
 
         if isinstance(result, PaginatorInterface):
@@ -121,7 +121,7 @@ class PythonFeature(Feature):
 
             return await ctx.send(
                 result,
-                allowed_mentions=discord.AllowedMentions.none()
+                allowed_mentions=disnake.AllowedMentions.none()
             )
 
         if use_file_check(ctx, len(result)):  # File "full content" preview limit
@@ -130,7 +130,7 @@ class PythonFeature(Feature):
             # Since this avoids escape issues and is more intuitive than pagination for
             #  long results, it will now be prioritized over PaginatorInterface if the
             #  resultant content is below the filesize threshold
-            return await ctx.send(file=discord.File(
+            return await ctx.send(file=disnake.File(
                 filename="output.py",
                 fp=io.BytesIO(result.encode('utf-8'))
             ))
@@ -244,7 +244,7 @@ class PythonFeature(Feature):
                         text = "\n".join(lines)
 
                         if use_file_check(ctx, len(text)):  # File "full content" preview limit
-                            send(await ctx.send(file=discord.File(
+                            send(await ctx.send(file=disnake.File(
                                 filename="inspection.prolog",
                                 fp=io.BytesIO(text.encode('utf-8'))
                             )))
@@ -365,7 +365,7 @@ class PythonFeature(Feature):
                                 f"Active (non-waiting) time: {active_time}",
                                 "**Delay will be added by async setup, use only for relative measurements**",
                             ]),
-                            file=discord.File(
+                            file=disnake.File(
                                 filename="lines.ansi",
                                 fp=io.BytesIO(''.join(lines).encode('utf-8'))
                             )
@@ -389,7 +389,7 @@ class PythonFeature(Feature):
             text = "\n".join(disassemble(argument.content, arg_dict=arg_dict))
 
             if use_file_check(ctx, len(text)):  # File "full content" preview limit
-                await ctx.send(file=discord.File(
+                await ctx.send(file=disnake.File(
                     filename="dis.py",
                     fp=io.BytesIO(text.encode('utf-8'))
                 ))
@@ -413,7 +413,7 @@ class PythonFeature(Feature):
         async with ReplResponseReactor(ctx.message):
             text = create_tree(argument.content, use_ansi=Flags.use_ansi(ctx))
 
-            await ctx.send(file=discord.File(
+            await ctx.send(file=disnake.File(
                 filename="ast.ansi",
                 fp=io.BytesIO(text.encode('utf-8'))
             ))

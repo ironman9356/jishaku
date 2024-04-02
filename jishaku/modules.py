@@ -14,10 +14,10 @@ Functions for managing and searching modules.
 import pathlib
 import typing
 
-import discord
+import disnake
 import pkg_resources
 from braceexpand import braceexpand
-from discord.ext import commands
+from disnake.ext import commands
 
 from jishaku.types import BotT, ContextA
 
@@ -30,7 +30,7 @@ else:
     from braceexpand import UnbalancedBracesError
 
 
-if typing.TYPE_CHECKING or discord.version_info >= (2, 0, 0):
+if typing.TYPE_CHECKING or disnake.version_info >= (2, 0, 0):
     _ExtensionConverterBase = commands.Converter[typing.List[str]]
 else:
     _ExtensionConverterBase = commands.Converter

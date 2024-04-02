@@ -13,8 +13,8 @@ Paginator-related tools and interfaces for Jishaku.
 
 import typing
 
-import discord
-from discord.ext import commands
+import disnake
+from disnake.ext import commands
 
 from jishaku.flags import Flags
 from jishaku.hljs import get_language, guess_file_traits
@@ -22,7 +22,7 @@ from jishaku.shim.paginator_base import EmojiSettings
 from jishaku.types import ContextA
 
 # Version detection
-if discord.version_info >= (2, 0, 0):
+if disnake.version_info >= (2, 0, 0):
     from jishaku.shim.paginator_200 import PaginatorEmbedInterface, PaginatorInterface
 else:
     from jishaku.shim.paginator_170 import PaginatorEmbedInterface, PaginatorInterface
@@ -187,7 +187,7 @@ def use_file_check(
         (
             # Ensure the user isn't on mobile
             not ctx.author.is_on_mobile()
-            if ctx.guild and ctx.bot.intents.presences and isinstance(ctx.author, discord.Member)
+            if ctx.guild and ctx.bot.intents.presences and isinstance(ctx.author, disnake.Member)
             else True
         )
     ])

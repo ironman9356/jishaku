@@ -14,26 +14,26 @@ Paginator-related tools and interfaces for Jishaku.
 import asyncio
 import typing
 
-import discord
-from discord import ui
-from discord.ext import commands
+import disnake
+from disnake import ui
+from disnake.ext import commands
 
 from jishaku.shim.paginator_base import EMOJI_DEFAULT
 
 T = typing.TypeVar('T', bound=ui.View)
 
-MaybeButton = typing.Union[discord.Interaction, ui.Button[T]]
+MaybeButton = typing.Union[disnake.Interaction, ui.Button[T]]
 
 
 def button_either_arg(
     a: MaybeButton[T],
     b: MaybeButton[T]
-) -> typing.Tuple[discord.Interaction, ui.Button[T]]:
+) -> typing.Tuple[disnake.Interaction, ui.Button[T]]:
     """
     Compatibility function to allow interaction and button to come in either order
     """
 
-    if isinstance(a, discord.Interaction):
+    if isinstance(a, disnake.Interaction):
         return (a, b)  # type: ignore
     return (b, a)  # type: ignore
 
@@ -48,7 +48,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
 
     .. code:: python3
 
-        from discord.ext import commands
+        from disnake.ext import commands
 
         from jishaku.paginators import PaginatorInterface
 
@@ -167,7 +167,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         """
         A property that returns the kwargs forwarded to send/edit when updating the page.
 
-        As this must be compatible with both `discord.TextChannel.send` and `discord.Message.edit`,
+        As this must be compatible with both `disnake.TextChannel.send` and `disnake.Message.edit`,
         it should be a dict containing 'content', 'embed' or both.
         """
 
@@ -207,7 +207,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         # Unconditionally set send lock to try and guarantee page updates on unfocused pages
         self.send_lock.set()
 
-    async def send_to(self, destination: discord.abc.Messageable):
+    async def send_to(self, destination: disnake.abc.Messageable):
         """
         Sends a message to the given destination with this interface.
 
@@ -215,7 +215,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         """
 
         self.message = await destination.send(
-            **self.send_kwargs, allowed_mentions=discord.AllowedMentions.none()
+            **self.send_kwargs, allowed_mentions=disnake.AllowedMentions.none()
         )
 
         self.send_lock.set()
@@ -267,7 +267,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
 
                 try:
                     await self.message.edit(**self.send_kwargs)
-                except discord.NotFound:
+                except disnake.NotFound:
                     # something terrible has happened
                     return
 
@@ -290,10 +290,10 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
     async def interaction_check(self, *args: typing.Any):
         """Check that determines whether this interaction should be honored"""
         *_, interaction = args  # type: ignore  #149
-        interaction: discord.Interaction
+        interaction: disnake.Interaction
         return not self.owner or interaction.user.id == self.owner.id
 
-    @ui.button(label="1 \u200b \N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}", style=discord.ButtonStyle.secondary)
+    @ui.button(label="1 \u200b \N{BLACK LEFT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR}", style=disnake.ButtonStyle.secondary)
     async def button_start(self, a: MaybeButton['PaginatorInterface'], b: MaybeButton['PaginatorInterface']):  # pylint: disable=unused-argument
         """Button to send interface to first page"""
 
@@ -303,7 +303,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         self.update_view()
         await interaction.response.edit_message(**self.send_kwargs)
 
-    @ui.button(label="\N{BLACK LEFT-POINTING TRIANGLE}", style=discord.ButtonStyle.secondary)
+    @ui.button(label="\N{BLACK LEFT-POINTING TRIANGLE}", style=disnake.ButtonStyle.secondary)
     async def button_previous(self, a: MaybeButton['PaginatorInterface'], b: MaybeButton['PaginatorInterface']):  # pylint: disable=unused-argument
         """Button to send interface to previous page"""
 
@@ -313,7 +313,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         self.update_view()
         await interaction.response.edit_message(**self.send_kwargs)
 
-    @ui.button(label="1", style=discord.ButtonStyle.primary)
+    @ui.button(label="1", style=disnake.ButtonStyle.primary)
     async def button_current(self, a: MaybeButton['PaginatorInterface'], b: MaybeButton['PaginatorInterface']):  # pylint: disable=unused-argument
         """Button to refresh the interface"""
 
@@ -322,7 +322,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         self.update_view()
         await interaction.response.edit_message(**self.send_kwargs)
 
-    @ui.button(label="\N{BLACK RIGHT-POINTING TRIANGLE}", style=discord.ButtonStyle.secondary)
+    @ui.button(label="\N{BLACK RIGHT-POINTING TRIANGLE}", style=disnake.ButtonStyle.secondary)
     async def button_next(self, a: MaybeButton['PaginatorInterface'], b: MaybeButton['PaginatorInterface']):  # pylint: disable=unused-argument
         """Button to send interface to next page"""
 
@@ -333,7 +333,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         await interaction.response.edit_message(**self.send_kwargs)
 
 
-    @ui.button(label="\N{BLACK SQUARE FOR STOP} \u200b Close paginator", style=discord.ButtonStyle.danger)
+    @ui.button(label="\N{BLACK SQUARE FOR STOP} \u200b Close paginator", style=disnake.ButtonStyle.danger)
     async def button_close(self, a: MaybeButton['PaginatorInterface'], b: MaybeButton['PaginatorInterface']):  # pylint: disable=unused-argument
         """Button to close the interface"""
 
@@ -352,7 +352,7 @@ class PaginatorEmbedInterface(PaginatorInterface):
     """
 
     def __init__(self, *args: typing.Any, **kwargs: typing.Any):
-        self._embed = kwargs.pop('embed', None) or discord.Embed()
+        self._embed = kwargs.pop('embed', None) or disnake.Embed()
         super().__init__(*args, **kwargs)
 
     @property

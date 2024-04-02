@@ -16,7 +16,7 @@ import inspect
 import os
 import typing
 
-import discord
+import disnake
 
 from jishaku.types import ContextA
 
@@ -168,7 +168,7 @@ class Flags(metaclass=FlagMeta):  # pylint: disable=too-few-public-methods
     ALWAYS_DM_TRACEBACK: bool
 
     @classmethod
-    def traceback_destination(cls, message: discord.Message) -> typing.Optional[discord.abc.Messageable]:
+    def traceback_destination(cls, message: disnake.Message) -> typing.Optional[disnake.abc.Messageable]:
         """
         Determine what 'default' location to send tracebacks to
         When None, the caller should decide
@@ -205,4 +205,4 @@ class Flags(metaclass=FlagMeta):  # pylint: disable=too-few-public-methods
         if cls.USE_ANSI_ALWAYS:
             return True
 
-        return not ctx.author.is_on_mobile() if isinstance(ctx.author, discord.Member) and ctx.bot.intents.presences else True
+        return not ctx.author.is_on_mobile() if isinstance(ctx.author, disnake.Member) and ctx.bot.intents.presences else True

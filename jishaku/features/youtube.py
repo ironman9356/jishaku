@@ -13,7 +13,7 @@ The jishaku youtube-dl command.
 
 import typing
 
-import discord
+import disnake
 
 from jishaku.types import ContextA
 
@@ -32,7 +32,7 @@ BASIC_OPTS = {
 }
 
 
-class BasicYouTubeDLSource(discord.FFmpegPCMAudio):
+class BasicYouTubeDLSource(disnake.FFmpegPCMAudio):
     """
     Basic audio source for youtube_dl-compatible URLs.
     """
@@ -57,16 +57,16 @@ class YouTubeFeature(Feature):
         if await VoiceFeature.connected_check(ctx):
             return
 
-        voice: discord.VoiceProtocol = ctx.guild.voice_client  # type: ignore
+        voice: disnake.VoiceProtocol = ctx.guild.voice_client  # type: ignore
 
-        if isinstance(voice, discord.VoiceClient):
+        if isinstance(voice, disnake.VoiceClient):
             if voice.is_playing():
                 voice.stop()
 
             # remove embed maskers if present
             url = url.lstrip("<").rstrip(">")
 
-            voice.play(discord.PCMVolumeTransformer(BasicYouTubeDLSource(url)))
+            voice.play(disnake.PCMVolumeTransformer(BasicYouTubeDLSource(url)))
             await ctx.send(f"Playing in {voice.channel.name}.")
         else:
             await ctx.send(f"Can't play on a custom VoiceProtocol: {voice}")

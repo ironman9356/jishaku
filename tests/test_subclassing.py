@@ -9,11 +9,11 @@ jishaku subclassing functionality test
 
 """
 
-import discord
+import disnake
 import pytest
 import pytest_asyncio
 import utils
-from discord.ext import commands
+from disnake.ext import commands
 
 
 @pytest_asyncio.fixture(
@@ -45,15 +45,15 @@ from discord.ext import commands
     ]
 )
 async def bot(request):
-    b = request.param[3]('?', intents=discord.Intents.all(), **request.param[4])
-    await discord.utils.maybe_coroutine(b.load_extension, request.param[0])
+    b = request.param[3]('?', intents=disnake.Intents.all(), **request.param[4])
+    await disnake.utils.maybe_coroutine(b.load_extension, request.param[0])
 
     b.test_cog = request.param[1]
     b.test_predicate = request.param[2]
 
     yield b
 
-    await discord.utils.maybe_coroutine(b.unload_extension, request.param[0])
+    await disnake.utils.maybe_coroutine(b.unload_extension, request.param[0])
 
 
 @pytest.mark.asyncio

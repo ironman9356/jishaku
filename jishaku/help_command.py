@@ -13,7 +13,7 @@ HelpCommand subclasses with jishaku features
 
 import typing
 
-from discord.ext import commands
+from disnake.ext import commands
 
 from jishaku.paginators import PaginatorEmbedInterface, PaginatorInterface
 

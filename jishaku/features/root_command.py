@@ -14,8 +14,8 @@ The jishaku root command.
 import sys
 import typing
 
-import discord
-from discord.ext import commands
+import disnake
+from disnake.ext import commands
 
 from jishaku.features.baseclass import Feature
 from jishaku.flags import Flags
@@ -56,9 +56,9 @@ class RootCommand(Feature):
 
         # Try to locate what vends the `discord` package
         distributions: typing.List[str] = [
-            dist for dist in packages_distributions()['discord']  # type: ignore
+            dist for dist in packages_distributions()['disnake']  # type: ignore
             if any(
-                file.parts == ('discord', '__init__.py')  # type: ignore
+                file.parts == ('disnake', '__init__.py')  # type: ignore
                 for file in distribution(dist).files  # type: ignore
             )
         ]
@@ -66,7 +66,7 @@ class RootCommand(Feature):
         if distributions:
             dist_version = f'{distributions[0]} `{package_version(distributions[0])}`'
         else:
-            dist_version = f'unknown `{discord.__version__}`'
+            dist_version = f'unknown `{disnake.__version__}`'
 
         summary = [
             f"Jishaku v{package_version('jishaku')}, {dist_version}, "
@@ -110,7 +110,7 @@ class RootCommand(Feature):
         cache_summary = f"{len(self.bot.guilds)} guild(s) and {len(self.bot.users)} user(s)"
 
         # Show shard settings to summary
-        if isinstance(self.bot, discord.AutoShardedClient):
+        if isinstance(self.bot, disnake.AutoShardedClient):
             if len(self.bot.shards) > 20:
                 summary.append(
                     f"This bot is automatically sharded ({len(self.bot.shards)} shards of {self.bot.shard_count})"
@@ -136,7 +136,7 @@ class RootCommand(Feature):
         else:
             message_cache = "Message cache is disabled"
 
-        if discord.version_info >= (1, 5, 0):
+        if disnake.version_info >= (1, 5, 0):
             remarks = {
                 True: 'enabled',
                 False: 'disabled',
@@ -238,7 +238,7 @@ class RootCommand(Feature):
         if index == -1:
             task = self.tasks.pop()
         else:
-            task = discord.utils.get(self.tasks, index=index)
+            task = disnake.utils.get(self.tasks, index=index)
             if task:
                 self.tasks.remove(task)
             else:

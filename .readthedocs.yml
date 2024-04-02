@@ -12,7 +12,7 @@ sphinx:
 
 python:
   install:
-    - requirements: requirements/discordpy.txt
+    - requirements: requirements/disnake.txt
     - method: pip
       path: .
     - requirements: requirements/docs.txt

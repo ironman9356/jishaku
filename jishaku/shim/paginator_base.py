@@ -13,11 +13,11 @@ Paginator-related tools and interfaces for Jishaku.
 
 import typing
 
-import discord
+import disnake
 
 # emoji settings, this sets what emoji are used for PaginatorInterface
 
-_Emoji = typing.Union[str, discord.PartialEmoji, discord.Emoji]
+_Emoji = typing.Union[str, disnake.PartialEmoji, disnake.Emoji]
 
 
 class EmojiSettings(typing.NamedTuple):

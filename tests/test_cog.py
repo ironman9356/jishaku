@@ -11,11 +11,11 @@ jishaku.cog loadability and functionality test
 
 import asyncio
 
-import discord
+import disnake
 import pytest
 import pytest_asyncio
 import utils
-from discord.ext import commands
+from disnake.ext import commands
 
 
 @pytest_asyncio.fixture(
@@ -38,12 +38,12 @@ from discord.ext import commands
     ]
 )
 async def bot(request):
-    b = request.param[1]('?', intents=discord.Intents.all(), **request.param[2])
-    await discord.utils.maybe_coroutine(b.load_extension, request.param[0])
+    b = request.param[1]('?', intents=disnake.Intents.all(), **request.param[2])
+    await disnake.utils.maybe_coroutine(b.load_extension, request.param[0])
 
     yield b
 
-    await discord.utils.maybe_coroutine(b.unload_extension, request.param[0])
+    await disnake.utils.maybe_coroutine(b.unload_extension, request.param[0])
 
 
 @pytest.mark.asyncio

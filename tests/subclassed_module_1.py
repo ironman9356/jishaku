@@ -4,7 +4,7 @@
 jishaku subclassing test 1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This is a valid extension file for discord.py intended to
+This is a valid extension file for disnake.py intended to
 discover weird behaviors related to subclassing.
 
 This variant overrides behavior using a Feature.
@@ -16,7 +16,7 @@ This variant overrides behavior using a Feature.
 
 import inspect
 
-from discord.ext import commands
+from disnake.ext import commands
 
 import jishaku
 

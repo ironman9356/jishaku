@@ -19,7 +19,7 @@ import sys
 import tempfile
 import typing
 
-from discord.ext import commands
+from disnake.ext import commands
 
 from jishaku.codeblocks import Codeblock, codeblock_converter
 from jishaku.exception_handling import ReplResponseReactor
