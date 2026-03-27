@@ -17,19 +17,21 @@ jobs:
           - {version: '3.8'}
           - {version: '3.9'}
           - {version: '3.10'}
-          # Disabled because yarl's build setup is insanely stupid (requires checked out cythonize)
-          #- {version: '3.11.0-alpha - 3.11.0', experimental: true}
-        disnake:
-          - {NAME: 'pypi', PIP_TARGET: 'disnaje[voice]'}
+          - {version: '3.11'}
+          - {version: '3.12'}
+          - {version: '3.13'}
+          - {version: '3.14'}
+        discord-py:
+          - {NAME: 'pypi', PIP_TARGET: 'disnake[voice]'}
           - {NAME: 'git', PIP_TARGET: 'disnake[voice] @ git+https://github.com/DisnakeDev/disnake@master'}
-    name: "${{ matrix.os }} CPython ${{ matrix.python.version }} with ${{ matrix.python-arch }} ${{ matrix.disnake.NAME }} disnake"
+    name: "${{ matrix.os }} CPython ${{ matrix.python.version }} with ${{ matrix.discord-py.NAME }} discord.py"
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
     - name: Set up Python ${{ matrix.python.version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python.version }}
 
@@ -37,7 +39,11 @@ jobs:
       shell: bash
       run: |
         python -m pip install --upgrade pip setuptools wheel
-        pip install -U "${{ matrix.disn.PIP_TARGET }}" --extra-index-url https://gorialis.github.io/pip/
+
+        # 3.13 needs audioop-lts
+        pip install -U "audioop-lts; python_version>='3.13'"
+
+        pip install -U "${{ matrix.discord-py.PIP_TARGET }}" --extra-index-url https://scarletcafe.github.io/pip/
         pip install -U $(find requirements -name *.txt -print | sed -e 's/^/-r /' | tr '\n' ' ')
 
     - name: Test from local directory
@@ -48,12 +54,7 @@ jobs:
     - name: Lint repository
       shell: bash
       run: |
-        echo "flake8:"
-        flake8 .
-        echo "pylint:"
-        pylint jishaku
-        echo "isort:"
-        isort . --check-only
+        ruff check
 
     - name: Create distributions and install wheel
       shell: bash
@@ -61,10 +62,10 @@ jobs:
         export tag_name="${GITHUB_REF##*/}"
 
         # Substitute README assets with direct GitHub links
-        sed -i'.original' -e "s/src=\".github\/assets/src=\"https:\/\/raw.githubusercontent.com\/Gorialis\/jishaku\/$(git rev-parse HEAD)\/.github\/assets/g" README.md
+        sed -i'.original' -e "s/src=\".github\/assets/src=\"https:\/\/raw.githubusercontent.com\/scarletcafe\/jishaku\/$(git rev-parse HEAD)\/.github\/assets/g" README.md
         rm -f README.md.original
 
-        python ./setup.py sdist bdist_egg bdist_wheel
+        python ./setup.py sdist bdist_wheel
         rm -rf jishaku
         find dist -name *.whl -exec pip install '{}' +
 
@@ -79,39 +80,52 @@ jobs:
         cd docs && make html
 
     - name: Upload artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
-        name: distributions
+        name: distributions-${{ matrix.os }}-${{ matrix.python.version }}-${{ matrix.discord-py.NAME }}
         path: dist/*
 
   upload_pypi:
     needs: [ build-dists ]
     runs-on: ubuntu-latest
+    environment: publish
+    permissions:
+      # Required to create release
+      contents: write
+      # Required for OIDC
+      id-token: write
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/')
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: true
 
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v2
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.10'  # Watch as I let this get handled as a float again
+          python-version: '3.14'  # Watch as I let this get handled as a float again
 
       - name: Install dependencies
         shell: bash
         run: |
+          sudo apt-get update && sudo apt-get install -y hub
           python -m pip install --upgrade pip setuptools wheel
           export tag_name="${GITHUB_REF##*/}"
           pip install -U ".[publish]"
 
       - name: Download artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
-          name: distributions
+          # There is currently a bug where download-artifact downloading multiple files of the same name corrupts the file.
+          # https://github.com/actions/download-artifact/issues/298
+          # Very cool.
+          # We don't have any native code so using the latest Ubuntu artifact should be OK.
+          #pattern: distributions-*
+          pattern: distributions-ubuntu-latest-3.14-pypi
+          merge-multiple: true
           path: dist
 
       - name: Publish wheels as release artifacts on GitHub
@@ -123,7 +137,7 @@ jobs:
           export tag_name="${GITHUB_REF##*/}"
           python create_dist_summary.py
           assets=()
-          for asset in ./dist/*.{whl,egg,tar.gz}; do
+          for asset in ./dist/*.{whl,tar.gz}; do
             assets+=("-a" "$asset")
           done
           tag_name="${GITHUB_REF##*/}"
@@ -131,7 +145,4 @@ jobs:
           rm ./dist/*.md
 
       - name: Publish packages to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.5.0
-        with:
-          user: __token__
-          password: ${{ secrets.pypi_api_token }}
+        uses: pypa/gh-action-pypi-publish@v1.13.0

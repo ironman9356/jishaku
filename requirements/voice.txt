@@ -1,1 +1,2 @@
-yt-dlp >= 2022.3.8
+disnake[voice] >= 2.12.0
+yt-dlp >= 2023.10.13

@@ -6,20 +6,21 @@ jishaku
 
 A discord.py extension including useful tools for bot development and debugging.
 
-:copyright: (c) 2021 Devon (Gorialis) R
+:copyright: (c) 2024 Devon (scarletcafe) R
 :license: MIT, see LICENSE for more details.
 
 """
 
-# pylint: disable=wildcard-import
-from jishaku.cog import *  # noqa: F401
-from jishaku.features.baseclass import Feature  # noqa: F401
-from jishaku.flags import Flags  # noqa: F401
-from jishaku.meta import *  # noqa: F401
+from jishaku.cog import Jishaku, STANDARD_FEATURES, OPTIONAL_FEATURES, setup
+from jishaku.features.baseclass import Feature
+from jishaku.flags import Flags
+from jishaku.meta import *  # noqa: F403
 
 __all__ = (
     'Jishaku',
     'Feature',
     'Flags',
-    'setup'
+    'STANDARD_FEATURES',
+    'OPTIONAL_FEATURES',
+    'setup',
 )

@@ -4,21 +4,20 @@
 jishaku subclassing test 1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This is a valid extension file for disnake.py intended to
+This is a valid extension file for discord.py intended to
 discover weird behaviors related to subclassing.
 
 This variant overrides behavior using a Feature.
 
-:copyright: (c) 2021 Devon (Gorialis) R
+:copyright: (c) 2021 Devon (scarletcafe) R
 :license: MIT, see LICENSE for more details.
 
 """
 
-import inspect
-
 from disnake.ext import commands
 
 import jishaku
+from jishaku.types import ContextT
 
 
 class ThirdPartyFeature(jishaku.Feature):
@@ -27,7 +26,7 @@ class ThirdPartyFeature(jishaku.Feature):
     """
 
     @jishaku.Feature.Command(name="jishaku", aliases=["jsk"], invoke_without_command=True, ignore_extra=False)
-    async def jsk(self, ctx: commands.Context):
+    async def jsk(self, ctx: ContextT):
         """
         override test
         """
@@ -40,20 +39,9 @@ class Magnet1(ThirdPartyFeature, *jishaku.OPTIONAL_FEATURES, *jishaku.STANDARD_F
     """
 
 
-async def async_setup(bot: commands.Bot):
-    """
-    The async setup function for the extended cog
-    """
-
-    await bot.add_cog(Magnet1(bot=bot))
-
-
-def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot):
     """
     The setup function for the extended cog
     """
 
-    if inspect.iscoroutinefunction(bot.add_cog):
-        return async_setup(bot)
-    else:
-        bot.add_cog(Magnet1(bot=bot))
+    await bot.add_cog(Magnet1(bot=bot))

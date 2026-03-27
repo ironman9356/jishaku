@@ -4,15 +4,15 @@
 jishaku.models tests
 ~~~~~~~~~~~~~~~~~~~~
 
-:copyright: (c) 2021 Devon (Gorialis) R
+:copyright: (c) 2021 Devon (scarletcafe) R
 :license: MIT, see LICENSE for more details.
 
 """
 
 import pytest
-import utils
 
 from jishaku.models import copy_context_with
+from tests import utils
 
 
 @pytest.mark.asyncio

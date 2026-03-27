@@ -6,7 +6,7 @@ jishaku.features.invocation
 
 The jishaku command invocation related commands.
 
-:copyright: (c) 2021 Devon (Gorialis) R
+:copyright: (c) 2021 Devon (scarletcafe) R
 :license: MIT, see LICENSE for more details.
 
 """
@@ -28,10 +28,10 @@ from jishaku.models import copy_context_with
 from jishaku.paginators import PaginatorInterface, WrappedPaginator, use_file_check
 from jishaku.types import ContextA, ContextT
 
-if typing.TYPE_CHECKING or disnake.version_info >= (2, 0):
-    UserIDConverter = commands.IDConverter[typing.Union[disnake.Member, disnake.User]]
-else:
-    UserIDConverter = commands.IDConverter
+UserIDConverter = commands.IDConverter[typing.Union[disnake.Member, disnake.User]]
+ChannelIDConverter = commands.IDConverter[
+    typing.Union[disnake.abc.GuildChannel, disnake.abc.PrivateChannel, disnake.Thread]
+]
 
 
 class SlimUserConverter(UserIDConverter):  # pylint: disable=too-few-public-methods
@@ -41,7 +41,7 @@ class SlimUserConverter(UserIDConverter):  # pylint: disable=too-few-public-meth
 
     async def convert(self, ctx: ContextA, argument: str) -> typing.Union[disnake.Member, disnake.User]:
         """Converter method"""
-        match = self._get_id_match(argument) or re.match(r'<@!?([0-9]{15,20})>$', argument)  # type: ignore
+        match = self._get_id_match(argument) or re.match(r"<@!?([0-9]{15,20})>$", argument)  # type: ignore
 
         if match is not None:
             user_id = int(match.group(1))
@@ -57,24 +57,39 @@ class SlimUserConverter(UserIDConverter):  # pylint: disable=too-few-public-meth
         raise commands.UserNotFound(argument)
 
 
+class SlimChannelConverter(ChannelIDConverter):  # pylint: disable=too-few-public-methods
+    """
+    Similar to Union[GuildChannelConverter, ThreadConverter], but can return PrivateChannels and
+    does not perform plaintext name or guild checks.
+    """
+
+    async def convert(
+        self, ctx: ContextA, argument: str
+    ) -> typing.Union[disnake.abc.GuildChannel, disnake.abc.PrivateChannel, disnake.Thread]:
+        """Converter method"""
+        match = self._get_id_match(argument) or re.match(r"<#([0-9]{15,20})>$", argument)
+
+        if match is not None:
+            channel_id = int(match.group(1))
+            result = None
+            if ctx.guild is not None:
+                result = ctx.guild.get_channel_or_thread(channel_id)
+            if result is None:
+                result = ctx.bot.get_channel(channel_id)
+            if result is not None:
+                return result
+        raise commands.ChannelNotFound(argument)
+
+
 class InvocationFeature(Feature):
     """
     Feature containing the command invocation related commands
     """
 
-    if typing.TYPE_CHECKING or hasattr(disnake, 'Thread'):
-        OVERRIDE_SIGNATURE = typing.Union[SlimUserConverter, disnake.TextChannel, disnake.Thread]  # pylint: disable=no-member
-    else:
-        OVERRIDE_SIGNATURE = typing.Union[SlimUserConverter, disnake.TextChannel]
+    OVERRIDE_SIGNATURE = typing.Union[SlimUserConverter, SlimChannelConverter]
 
     @Feature.Command(parent="jsk", name="override", aliases=["execute", "exec", "override!", "execute!", "exec!"])
-    async def jsk_override(
-        self,
-        ctx: ContextT,
-        overrides: commands.Greedy[OVERRIDE_SIGNATURE],
-        *,
-        command_string: str
-    ):
+    async def jsk_override(self, ctx: ContextT, overrides: commands.Greedy[OVERRIDE_SIGNATURE], *, command_string: str):
         """
         Run a command with a different user, channel, or thread, optionally bypassing checks and cooldowns.
 
@@ -84,15 +99,15 @@ class InvocationFeature(Feature):
         kwargs: typing.Dict[str, typing.Any] = {}
 
         if ctx.prefix:
-            kwargs["content"] = ctx.prefix + command_string.lstrip('/')
+            kwargs["content"] = ctx.prefix + command_string.lstrip("/")
         else:
             await ctx.send("Reparsing requires a prefix")
             return
 
         for override in overrides:
-            if isinstance(override, disnake.User):
+            if isinstance(override, (disnake.User, disnake.Member)):
                 # This is a user
-                if ctx.guild:
+                if isinstance(override, disnake.User) and ctx.guild:
                     # Try to upgrade to a Member instance
                     # This used to be done by a Union converter, but doing it like this makes
                     #  the command more compatible with chaining, e.g. `jsk in .. jsk su ..`
@@ -112,17 +127,67 @@ class InvocationFeature(Feature):
 
         if alt_ctx.command is None:
             if alt_ctx.invoked_with is None:
-                await ctx.send('This bot has been hard-configured to ignore this user.')
+                await ctx.send("This bot has been hard-configured to ignore this user.")
                 return
             await ctx.send(f'Command "{alt_ctx.invoked_with}" is not found')
             return
 
-        if ctx.invoked_with and ctx.invoked_with.endswith('!'):
+        if ctx.invoked_with and ctx.invoked_with.endswith("!"):
             await alt_ctx.command.reinvoke(alt_ctx)
             return
 
         await alt_ctx.command.invoke(alt_ctx)
         return
+
+    @Feature.Command(parent="jsk", name="rerun", aliases=["rr", "rerun!", "rr!", "re", "re!"])
+    async def jsk_rerun(
+        self,
+        ctx: ContextT,
+        overrides: commands.Greedy[OVERRIDE_SIGNATURE],
+        *,
+        message: typing.Optional[commands.MessageConverter] = None,
+    ):
+        """
+        Re-run a command from a replied message or message link, optionally with a different user, channel or thread and/or bypassing checks and cooldowns
+
+        Users will try to resolve to a Member, but will use a User if it can't find one.
+
+        Piggybacks off of `jsk override` so it accepts all the same overrides and has the same fundamental behaviors.
+        """
+
+        target = message
+        if target is None:
+            ref = ctx.message.reference
+            if ref is not None:
+                with contextlib.suppress(commands.MessageNotFound):
+                    target = await commands.MessageConverter().convert(ctx, ref.jump_url)
+
+        if not isinstance(target, disnake.Message):
+            return await ctx.send("Reply to a message or provide a message link.")
+
+        # Setting the target's author to the current author and then overriding it back as the original
+        # target's author later in exec feels redundant but we don't want to run the exec command itself
+        # as the target's author, just in case.
+        msg_ctx = await self.bot.get_context(target, cls=ctx.__class__)
+        msg_ctx = await copy_context_with(msg_ctx, author=ctx.author)
+        msg_ctx.invoked_with = ctx.invoked_with
+
+        # Prevent infinite recursions by prohibiting rerunning rerun commands
+        if msg_ctx.command and msg_ctx.view:
+            prev = msg_ctx.view.index
+
+            msg_ctx.view.skip_ws()
+            sub = msg_ctx.view.get_word()
+            if sub and self.jsk_rerun.parent.get_command(sub) is self.jsk_rerun:
+                return await ctx.send("Cannot rerun a rerun command.")
+
+            msg_ctx.view.index = prev
+
+        # If no user overrides were provided, default to the original message's author
+        if not any(isinstance(o, (disnake.Member, disnake.User)) for o in overrides):
+            overrides = [target.author, *overrides]
+
+        await self.jsk_override(msg_ctx, overrides, command_string=target.content.lstrip(ctx.prefix or ""))
 
     @Feature.Command(parent="jsk", name="repeat")
     async def jsk_repeat(self, ctx: ContextT, times: int, *, command_string: str):
@@ -193,17 +258,14 @@ class InvocationFeature(Feature):
             pass
 
         # getsourcelines for some reason returns WITH line endings
-        source_text = ''.join(source_lines)
+        source_text = "".join(source_lines)
 
         if use_file_check(ctx, len(source_text)):  # File "full content" preview limit
-            await ctx.send(file=disnake.File(
-                filename=filename,
-                fp=io.BytesIO(source_text.encode('utf-8'))
-            ))
+            await ctx.send(file=disnake.File(filename=filename, fp=io.BytesIO(source_text.encode("utf-8"))))
         else:
-            paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1980)
+            paginator = WrappedPaginator(prefix="```py", suffix="```", max_size=1980)
 
-            paginator.add_line(source_text.replace('```', '``\N{zero width space}`'))
+            paginator.add_line(source_text.replace("```", "``\N{zero width space}`"))
 
             interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
             await interface.send_to(ctx)

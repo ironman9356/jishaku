@@ -4,7 +4,7 @@
 jishaku subclassing functionality test
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:copyright: (c) 2021 Devon (Gorialis) R
+:copyright: (c) 2021 Devon (scarletcafe) R
 :license: MIT, see LICENSE for more details.
 
 """
@@ -12,8 +12,9 @@ jishaku subclassing functionality test
 import disnake
 import pytest
 import pytest_asyncio
-import utils
 from disnake.ext import commands
+
+from tests import utils
 
 
 @pytest_asyncio.fixture(
@@ -44,7 +45,9 @@ from disnake.ext import commands
         "native (AutoShardedBot)"
     ]
 )
-async def bot(request):
+async def bot(
+    request: pytest.FixtureRequest
+):
     b = request.param[3]('?', intents=disnake.Intents.all(), **request.param[4])
     await disnake.utils.maybe_coroutine(b.load_extension, request.param[0])
 
@@ -57,15 +60,17 @@ async def bot(request):
 
 
 @pytest.mark.asyncio
-async def test_commands(bot):
-    cog = bot.get_cog(bot.test_cog)
+async def test_commands(
+    bot: commands.Bot
+):
+    cog = bot.get_cog(bot.test_cog)  # type: ignore
 
     assert cog is not None
 
     # test 'jsk'
     with utils.mock_ctx() as ctx:
-        await bot.get_command('jsk').callback(cog, ctx)
+        await bot.get_command('jsk').callback(cog, ctx)  # type: ignore
 
         ctx.send.assert_called_once()
         text = ctx.send.call_args[0][0]
-        assert bot.test_predicate in text
+        assert bot.test_predicate in text  # type: ignore

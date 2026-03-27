@@ -6,7 +6,7 @@ jishaku.features.sql
 
 The jishaku SQL-related commands and utilities.
 
-:copyright: (c) 2021 Devon (Gorialis) R
+:copyright: (c) 2021 Devon (scarletcafe) R
 :license: MIT, see LICENSE for more details.
 
 """
@@ -252,6 +252,75 @@ else:
             return tables
 
 
+try:
+    import sqlite3
+
+    import asqlite  # type: ignore
+except ImportError:
+    pass
+else:
+    @adapter(asqlite.Connection, asqlite.Pool)
+    class AsqliteConnectionAdapter(Adapter[typing.Union[asqlite.Connection, asqlite.Pool]]):
+        def __init__(self, connection: typing.Union[asqlite.Connection, asqlite.Pool]):
+            super().__init__(connection)
+            self.connection: asqlite.Connection = None  # type: ignore
+
+        @contextlib.asynccontextmanager
+        async def use(self):
+            if isinstance(self.connector, asqlite.Pool):
+                async with self.connector.acquire() as connection:
+                    self.connection = connection
+                    yield
+            else:
+                self.connection = self.connector
+                yield
+
+        def info(self) -> str:
+            return f"asqlite {asqlite.__version__} {type(self.connector).__name__}"
+
+        async def fetchrow(self, query: str) -> typing.Dict[str, typing.Any]:
+            row = await self.connection.fetchone(query)
+            return dict(row) if row else None  # type: ignore
+
+        async def fetch(self, query: str) -> typing.List[typing.Dict[str, typing.Any]]:
+            return [dict(row) for row in await self.connection.fetchall(query)]
+
+        async def execute(self, query: str) -> str:
+            # This is really the best analogue I can come up with, given that sqlite doesn't
+            # output status strings like other RDBMS systems.
+            return str((await self.connection.execute(query)).get_cursor().rowcount)
+
+        async def table_summary(self, table_query: typing.Optional[str]) -> typing.Dict[str, typing.Dict[str, str]]:
+            tables: typing.Dict[str, typing.Dict[str, str]] = collections.defaultdict(dict)
+
+            if table_query:
+                for row in await self.connection.fetchall(
+                    "SELECT name, type, `notnull`, dflt_value, pk from pragma_table_info(?);",
+                    table_query,
+                ):
+                    tables[table_query][row['name']] = self.format_column_row(row)
+
+            else:
+                for row in await self.connection.fetchall("SELECT name FROM sqlite_master WHERE type = 'table';"):
+                    name = row['name']
+
+                    for table_column in await self.connection.fetchall(
+                        "SELECT name, type, `notnull`, dflt_value, pk from pragma_table_info(?);",
+                        name,
+                    ):
+                        tables[name][table_column['name']] = self.format_column_row(table_column)
+
+            return tables
+
+        def format_column_row(self, row: sqlite3.Row) -> str:
+            default = row['dflt_value']
+            not_null = " NOT NULL" if row['notnull'] == 1 else ""
+            default_value = f" DEFAULT {default}" if default else ""
+            primary_key = " PRIMARY KEY" if row['pk'] else ""
+
+            return f"{row['type']}{not_null}{default_value}{primary_key}"
+
+
 # pylint: enable=missing-class-docstring,missing-function-docstring
 
 class SQLFeature(Feature):
@@ -304,10 +373,14 @@ class SQLFeature(Feature):
         if adapter_shim is None:
             return await ctx.send("No SQL adapter could be found on this bot.")
 
+        output = None
         async with adapter_shim.use():
             async with ReplResponseReactor(ctx.message):
                 with self.submit(ctx):
                     output = await adapter_shim.fetchrow(query)
+
+        if output is None:
+            return
 
         if not output:
             return await ctx.reply("No results produced.")
@@ -337,10 +410,14 @@ class SQLFeature(Feature):
         if adapter_shim is None:
             return await ctx.send("No SQL adapter could be found on this bot.")
 
+        output = None
         async with adapter_shim.use():
             async with ReplResponseReactor(ctx.message):
                 with self.submit(ctx):
                     output = await adapter_shim.fetch(query)
+
+        if output is None:
+            return
 
         if not output:
             return await ctx.reply("No results produced.")
@@ -365,7 +442,7 @@ class SQLFeature(Feature):
             interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
             await interface.send_to(ctx)
 
-    @Feature.Command(parent="jsk_sql", name="select", aliases=['SELECT'])
+    @Feature.Command(parent="jsk_sql", name="select")
     async def jsk_sql_select(self, ctx: ContextA, *, query: str):
         """
         Shortcut for 'jsk sql fetch select'.
@@ -384,10 +461,14 @@ class SQLFeature(Feature):
         if adapter_shim is None:
             return await ctx.send("No SQL adapter could be found on this bot.")
 
+        output = None
         async with adapter_shim.use():
             async with ReplResponseReactor(ctx.message):
                 with self.submit(ctx):
                     output = await adapter_shim.execute(query)
+
+        if output is None:
+            return
 
         await ctx.reply(content=output)
 
@@ -402,10 +483,14 @@ class SQLFeature(Feature):
         if adapter_shim is None:
             return await ctx.send("No SQL adapter could be found on this bot.")
 
+        output = None
         async with adapter_shim.use():
             async with ReplResponseReactor(ctx.message):
                 with self.submit(ctx):
                     output = await adapter_shim.table_summary(query)
+
+        if output is None:
+            return
 
         if not output:
             return await ctx.reply("No results produced.")

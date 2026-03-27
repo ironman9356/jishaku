@@ -4,26 +4,26 @@
 jishaku.repl internal test
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:copyright: (c) 2021 Devon (Gorialis) R
+:copyright: (c) 2021 Devon (scarletcafe) R
 :license: MIT, see LICENSE for more details.
 
 """
 
 import inspect
 import random
-import sys
+import typing
 
 import pytest
-from utils import mock_ctx
 
 from jishaku.repl import AsyncCodeExecutor, Scope, get_parent_var, get_var_dict_from_ctx
+from tests.utils import mock_ctx
 
 
 def upper_method():
     return get_parent_var('hidden_variable')
 
 
-async def add_numbers(one, two):
+async def add_numbers(one: int, two: int) -> int:
     return one + two
 
 
@@ -63,18 +63,12 @@ def test_scope_var():
         ('yield 30; yield 40', [30, 40]),
         ('yield 60; 70', [60, 70]),
         ('90; 100', [100]),
-        pytest.param(
-            'eval("""\n77 + 22\n""")', [99],
-            marks=pytest.mark.skipif(
-                sys.version_info < (3, 7),
-                reason="3.6 requires armor function so cannot handle indents"
-            )
-        )
+        ('eval("""\n77 + 22\n""")', [99]),
     ]
 )
 @pytest.mark.asyncio
-async def test_executor_basic(code, expected):
-    return_data = []
+async def test_executor_basic(code: str, expected: typing.List[int]):
+    return_data: list[int] = []
     async for result in AsyncCodeExecutor(code):
         return_data.append(result)
 
@@ -107,9 +101,9 @@ async def test_executor_basic(code, expected):
     ]
 )
 @pytest.mark.asyncio
-async def test_executor_advanced(code, expected, arg_dict, scope):
+async def test_executor_advanced(code: str, expected: typing.List[typing.Optional[int]], arg_dict: typing.Optional[typing.Dict[str, int]], scope: Scope):
 
-    return_data = []
+    return_data: list[int | None] = []
     async for result in AsyncCodeExecutor(code, scope, arg_dict=arg_dict):
         return_data.append(result)
 
@@ -122,7 +116,7 @@ async def test_executor_advanced(code, expected, arg_dict, scope):
 
 
 @pytest.mark.asyncio
-async def test_scope_copy(scope):
+async def test_scope_copy(scope: Scope):
     scope2 = Scope()
     scope2.update(scope)
 
@@ -150,13 +144,13 @@ async def test_scope_copy(scope):
 
 
 @pytest.mark.asyncio
-async def test_executor_builtins(scope):
+async def test_executor_builtins(scope: Scope):
     codeblock = inspect.cleandoc("""
     def ensure_builtins():
         return ValueError
     """)
 
-    return_data = []
+    return_data: list[None] = []
     async for result in AsyncCodeExecutor(codeblock, scope):
         return_data.append(result)
 
@@ -165,11 +159,11 @@ async def test_executor_builtins(scope):
 
     assert 'ensure_builtins' in scope.globals, "Checking function remains defined"
     assert callable(scope.globals['ensure_builtins']), "Checking defined is callable"
-    assert scope.globals['ensure_builtins']() == ValueError, "Checking defined return consistent"
+    assert scope.globals['ensure_builtins']() is ValueError, "Checking defined return consistent"
 
 
 @pytest.mark.asyncio
-async def test_var_dict(scope):
+async def test_var_dict(scope: Scope):
     with mock_ctx() as ctx:
         scope.update_globals(get_var_dict_from_ctx(ctx))
 

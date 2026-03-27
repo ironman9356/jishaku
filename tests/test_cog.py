@@ -4,7 +4,7 @@
 jishaku.cog loadability and functionality test
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:copyright: (c) 2021 Devon (Gorialis) R
+:copyright: (c) 2021 Devon (scarletcafe) R
 :license: MIT, see LICENSE for more details.
 
 """
@@ -14,8 +14,9 @@ import asyncio
 import disnake
 import pytest
 import pytest_asyncio
-import utils
 from disnake.ext import commands
+
+from tests import utils
 
 
 @pytest_asyncio.fixture(

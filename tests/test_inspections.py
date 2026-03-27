@@ -4,18 +4,19 @@
 jishaku.inspections test
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:copyright: (c) 2021 Devon (Gorialis) R
+:copyright: (c) 2021 Devon (scarletcafe) R
 :license: MIT, see LICENSE for more details.
 
 """
 
 import collections  # for __iadd__ test
+import typing
 
 import disnake
 import pytest
-from utils import sentinel
 
 from jishaku.repl.inspections import all_inspections
+from tests.utils import sentinel
 
 
 @pytest.mark.parametrize(
@@ -29,6 +30,6 @@ from jishaku.repl.inspections import all_inspections
         sentinel  # cover current-working-directory inspections
     ]
 )
-def test_object_inspection(target):
+def test_object_inspection(target: typing.Any):
     for _, _ in all_inspections(target):
         pass

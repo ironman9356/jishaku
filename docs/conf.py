@@ -22,8 +22,8 @@
 from jishaku.meta import __version__
 
 project = 'jishaku'
-copyright = '2021, Gorialis'
-author = 'Gorialis'
+copyright = '2021, Devon (scarletcafe) R'
+author = 'scarletcafe'
 
 # The short X.Y version
 version = __version__
@@ -51,7 +51,7 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
-    'sphinxcontrib.asyncio',
+    'sphinxcontrib_trio',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -82,6 +82,10 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 pygments_style = 'friendly'
 
 rst_prolog = """
+.. |coro| replace:: This function is a |coroutine_link|_.
+.. |maybecoro| replace:: This function *could be a* |coroutine_link|_.
+.. |coroutine_link| replace:: *coroutine*
+.. _coroutine_link: https://docs.python.org/3/library/asyncio-task.html#coroutine
 .. |tasked| replace:: This command submits itself to the |taskref|_.
 .. |taskref| replace:: *task queue*
 .. _taskref: cog.html#task-system
@@ -148,7 +152,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'jishaku.tex', 'jishaku Documentation',
-     'Gorialis', 'manual'),
+     'scarletcafe', 'manual'),
 ]
 
 

@@ -4,7 +4,7 @@
 jishaku.hljs test
 ~~~~~~~~~~~~~~~~~
 
-:copyright: (c) 2021 Devon (Gorialis) R
+:copyright: (c) 2021 Devon (scarletcafe) R
 :license: MIT, see LICENSE for more details.
 
 """
@@ -24,5 +24,5 @@ from jishaku.hljs import get_language
         ('#!/usr/bin/unknown', '')
     ]
 )
-def test_hljs(filename, language):
+def test_hljs(filename: str, language: str):
     assert get_language(filename) == language

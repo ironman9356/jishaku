@@ -6,7 +6,7 @@ jishaku.repl.inspections
 
 Inspections performable on Python objects.
 
-:copyright: (c) 2021 Devon (Gorialis) R
+:copyright: (c) 2021 Devon (scarletcafe) R
 :license: MIT, see LICENSE for more details.
 
 """
@@ -15,8 +15,9 @@ import collections
 import functools
 import inspect
 import os
-import sys
 import typing
+
+from typing_extensions import ParamSpec
 
 INSPECTIONS: typing.List[
     typing.Tuple[
@@ -29,12 +30,7 @@ WrapperDescriptorType = type(int.__le__)
 
 
 T = typing.TypeVar('T')
-
-if sys.version_info < (3, 10):
-    from typing_extensions import ParamSpec
-    P = ParamSpec('P')
-else:
-    P = typing.ParamSpec('P')  # pylint: disable=no-member
+P = ParamSpec('P')
 
 
 def add_inspection(name: str) -> typing.Callable[
@@ -174,7 +170,7 @@ def content_type_inspection(obj: typing.Sized):
     total = len(obj)  # type: ignore
     types = collections.Counter(type(x) for x in obj)  # type: ignore
 
-    output = ', '.join(f'{x.__name__} ({y*100/total:.1f}\uFF05)' for x, y in types.most_common(3))
+    output = ', '.join(f'{x.__name__} ({y * 100 / total:.1f}\uFF05)' for x, y in types.most_common(3))
     if len(types) > 3:
         output += ', ...'
 
