@@ -75,7 +75,7 @@ class ShellFeature(Feature):
     class ShellStandardInputModal(ui.Modal, title="Type input"):
         """Modal that prompts users for text to provide to stdin"""
 
-        stdin_content: ui.TextInput[ui.Modal] = ui.TextInput(label="Text", style=disnake.TextStyle.short)
+        stdin_content: ui.TextInput[ui.Modal] = ui.TextInput(label="Text", style=disnake.TextInputStyle.short)
 
         def __init__(self, reader: ShellReader, *args: typing.Any, **kwargs: typing.Any):
             super().__init__(*args, timeout=300, **kwargs)

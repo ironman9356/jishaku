@@ -595,7 +595,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
     class PageChangeModal(ui.Modal, title="Go to page"):
         """Modal that prompts users for the page number to change to"""
 
-        page_number: ui.TextInput[ui.Modal] = ui.TextInput(label="Page number", style=disnake.TextStyle.short)
+        page_number: ui.TextInput[ui.Modal] = ui.TextInput(label="Page number", style=disnake.TextInputStyle.short)
 
         def __init__(self, interface: 'PaginatorInterface', *args: typing.Any, **kwargs: typing.Any):
             super().__init__(*args, timeout=interface.timeout_length, **kwargs)
