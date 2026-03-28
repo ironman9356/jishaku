@@ -72,14 +72,14 @@ class ShellFeature(Feature):
     Feature containing the shell-related commands
     """
 
-    class ShellStandardInputModal(ui.Modal, title="Type input"):
+    class ShellStandardInputModal(ui.Modal):
         """Modal that prompts users for text to provide to stdin"""
 
-        stdin_content: ui.TextInput[ui.Modal] = ui.TextInput(label="Text", style=disnake.TextInputStyle.short)
 
         def __init__(self, reader: ShellReader, *args: typing.Any, **kwargs: typing.Any):
-            super().__init__(*args, timeout=300, **kwargs)
+            super().__init__(*args, title="Type input", timeout=300, **kwargs)
             self.reader = reader
+            self.stdin_content: ui.TextInput = ui.TextInput(label="Text", style=disnake.TextInputStyle.short)
 
         async def on_submit(self, interaction: disnake.Interaction, /):
             value = self.stdin_content.value or ""
