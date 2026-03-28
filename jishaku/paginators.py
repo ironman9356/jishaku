@@ -592,13 +592,13 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         """Endstop label for going to the last page (changes on page count)"""
         return f"{self.emojis.end} \u200b {self.page_count}"
 
-    class PageChangeModal(ui.Modal, title="Go to page"):
+    class PageChangeModal(ui.Modal):
         """Modal that prompts users for the page number to change to"""
 
         page_number: ui.TextInput[ui.Modal] = ui.TextInput(label="Page number", style=disnake.TextInputStyle.short)
 
         def __init__(self, interface: 'PaginatorInterface', *args: typing.Any, **kwargs: typing.Any):
-            super().__init__(*args, timeout=interface.timeout_length, **kwargs)
+            super().__init__(*args, title="Go to page", timeout=interface.timeout_length, **kwargs)
             self.interface = interface
             self.page_number.label = f"Page number (1-{interface.page_count})"
             self.page_number.min_length = 1
